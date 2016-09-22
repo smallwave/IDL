@@ -23,7 +23,7 @@ FUNCTION MODIS_Resize, MODISFilePaths,TIFFDirectory
         ENVI_FILE_MNG, id = fid, /REMOVE
       ENDFOR
       ; Minium pixel size
-      IF count EQ 1 THEN out_ps = psarr ELSE out_ps = MIN(psarr, DIMENSION = 2)
+      IF FileCount EQ 1 THEN out_ps = psarr ELSE out_ps = MIN(psarr, DIMENSION = 2)
     END
     2: BEGIN
       ; Method 2: using latitude of study area centroid to calculate pixel size
@@ -39,7 +39,7 @@ FUNCTION MODIS_Resize, MODISFilePaths,TIFFDirectory
     END
   ENDCASE
 
-  FOR i = 0, count - 1 DO BEGIN
+  FOR i = 0, FileCount - 1 DO BEGIN
     fname = MODISFilePaths[i]
     ENVI_OPEN_DATA_FILE, fname, r_fid = fid
     IF (fid EQ -1) THEN RETURN, 0 
@@ -58,7 +58,7 @@ FUNCTION MODIS_Resize, MODISFilePaths,TIFFDirectory
     ENVI_DOIT, 'RESIZE_DOIT', fid = fid, pos = pos, dims = dims, interp = 0, rfact = rfact, $
       out_name = out_name, r_fid = r_fid
 
-    ENVI_FILE_MNG, id = fid, /REMOVE
+    ENVI_FILE_MNG, id = fid, /REMOVE,/DELETE
     ENVI_FILE_MNG, id = r_fid, /REMOVE
   ENDFOR
   RETURN,1

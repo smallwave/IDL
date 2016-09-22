@@ -14,17 +14,12 @@
 ;+--------------------------------------------------------------------------
 PRO Main_MOD07_MOSAIC, MODISDirectory = MODISDirectory, $
   ENVIDirectory = ENVIDirectory
-  
-  RESOLVE_ROUTINE, 'PUB_AcqDate2DOY' 
-  RESOLVE_ROUTINE, 'GEOREF_MOSAIC_SETUP'
-  RESOLVE_ROUTINE, 'MOD07_HDF_TO_ENVI'
-  RESOLVE_ROUTINE, 'MODIS_Resize'
-  RESOLVE_ROUTINE, 'MODIS_Mosaic'
 
   ENVI, /RESTORE_BASE_SAVE_FILES
   ENVI_BATCH_INIT, /NO_STATUS_WINDOW
-  
-  
+
+  RESOLVE_ROUTINE, 'GEOREF_MOSAIC_SETUP'
+
   ;dir
   HDFDirectory       = 'D:\\In\\'
   TIFFDirectory      = 'D:\\Out\\'
@@ -43,10 +38,10 @@ PRO Main_MOD07_MOSAIC, MODISDirectory = MODISDirectory, $
     strDate          =     STRING(Year,FORMAT = '(i4)')      $
       + STRING(Month,FORMAT = '(i2.2)')   $
       + STRING(Day,FORMAT = '(i2.2)')
-    nDOY             = PUB_AcqDate2DOY(strDate)
+    nDOY             = DATE_TO_DOY(strDate)
 
     ;+--------------------------------------------------------------------------
-    ;| 01 
+    ;| 01
     ;+--------------------------------------------------------------------------
     strSeachDateTime = '*A' + STRING(Year,FORMAT = '(i4)') + STRING(nDOY,FORMAT = '(i3.3)') + '*.hdf'
     MODISFilePaths = FILE_SEARCH(HDFDirectory,strSeachDateTime, COUNT = nCount, /TEST_READ, /FULLY_QUALIFY_PATH)
@@ -60,7 +55,7 @@ PRO Main_MOD07_MOSAIC, MODISDirectory = MODISDirectory, $
     ;| 02
     ;+--------------------------------------------------------------------------
     strSeachDateTime = '*A' + STRING(Year,FORMAT = '(i4)') + STRING(nDOY,FORMAT = '(i3.3)') + '*.dat'
-    MODISFilePaths = FILE_SEARCH(HDFDirectory,strSeachDateTime, COUNT = nCount, /TEST_READ, /FULLY_QUALIFY_PATH)
+    MODISFilePaths = FILE_SEARCH(TIFFDirectory,strSeachDateTime, COUNT = nCount, /TEST_READ, /FULLY_QUALIFY_PATH)
     IF(nCount LE 0) THEN BEGIN
       RETURN
     ENDIF
@@ -81,7 +76,7 @@ PRO Main_MOD07_MOSAIC, MODISDirectory = MODISDirectory, $
 
 
   ENDFOR  ; date
-  
+
   ENVI_BATCH_EXIT
-  
+
 END

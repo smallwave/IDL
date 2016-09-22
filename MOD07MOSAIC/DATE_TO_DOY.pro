@@ -1,7 +1,7 @@
 ;+--------------------------------------------------------------------------
 ;| PUB_AcqDate2DOY
 ;+--------------------------------------------------------------------------
-FUNCTION PUB_AcqDate2DOY, sAcqDate
+FUNCTION DATE_TO_DOY, sAcqDate
 
   ; get the year moth day from the string sAcqDate
   nYear     = LONG(STRMID(sAcqDate,0,4))
