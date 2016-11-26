@@ -41,6 +41,7 @@ PRO SOILPROCESSCODE
       nusoilType  =  N_ELEMENTS(usoilType)
       sumDepths   =  0.0
       outputType  =  7
+      ;get the type to represent the cell
       FOR k =0, nusoilType-1 DO BEGIN
         sumDepth = TOTAL(soilDepth[WHERE(soilType EQ usoilType[k])])
         IF (sumDepth GT sumDepths) THEN BEGIN
