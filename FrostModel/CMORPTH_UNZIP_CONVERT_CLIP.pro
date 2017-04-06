@@ -14,13 +14,14 @@
 ;
 ; MODIFICATION HISTORY:
 ; 2016.11.28
+; 2016.11.30   update add  half hour to one hour
 ;
 ;*******************************************************************************
 PRO  CMORPTH_UNZIP_CONVERT_CLIP
 
-   CMORPTHDirectory   = 'D:\\worktemp\\Permafrost(FrostModel)\\Data\\Prec\\'
-   TempDirectory      = 'D:\\worktemp\\Permafrost(FrostModel)\\Data\\Temp\\'
-   UNZIPDirectory     = 'D:\\worktemp\\Permafrost(FrostModel)\\Data\\PrecUnzip\\'
+   CMORPTHDirectory   = 'D:\worktemp\Permafrost(FrostModel)\Data\Prec\PrecZip\'
+   TempDirectory      = 'D:\worktemp\Permafrost(FrostModel)\Data\Prec\Temp\'
+   UNZIPDirectory     = 'D:\worktemp\Permafrost(FrostModel)\Data\Prec\TempUnZip\'
    ShpFilePath        = 'D:\\workspace\\Write Paper\\SoilTextureProduce\\Data\\ProcessData\\Boundary\\Tibet_Plateau_Boundar.shp'
    
    IF(KEYWORD_SET(CMORPTHDirectory) EQ 0 OR KEYWORD_SET(UNZIPDirectory) EQ 0) THEN RETURN
@@ -39,7 +40,7 @@ PRO  CMORPTH_UNZIP_CONVERT_CLIP
    ;**************************************************************************
    GridSizeX          = 0.072756669D   ;
    GridSizeY          = 0.072771377D   ;
-   nx                 = 4948L  ;
+   nx                 = 4948L   ;
    ny                 = 1649L   ;
    ; start point
    StartX             = -179.9818 ;
@@ -98,11 +99,18 @@ PRO  CMORPTH_UNZIP_CONVERT_CLIP
        OutFileName       =  UNZIPDirectory + FileName
 
        IF FILE_TEST(OutFileName) THEN BEGIN
-
+        
          OPENR, hFile, OutFileName, /GET_LUN
-         data        = READ_BINARY(hFile,DATA_DIMS=[nx,ny],DATA_START=0,$
-           DATA_TYPE=4,ENDIAN='little')
-         data        = REVERSE(data, 2)
+         data1        = READ_BINARY(hFile,DATA_DIMS=[nx,ny],DATA_START=0,$
+                       DATA_TYPE=4,ENDIAN='little')
+;         data1        = REVERSE(data1, 2)
+
+         data2        = READ_BINARY(hFile,DATA_DIMS=[nx,ny],DATA_START=31872,$
+                       DATA_TYPE=4,ENDIAN='little')
+;         data2        = REVERSE(data2, 2)
+
+         data         =  data1 + data2
+         data(where(data< 0)) = -999
 
          ;3.2   Monthly file names
          FileName    =  FILE_BASENAME(OutFileName)
@@ -117,6 +125,7 @@ PRO  CMORPTH_UNZIP_CONVERT_CLIP
            DATA_TYPE=4,OFFSET=0,MAP_INFO=iMap,/WRITE,$
            /OPEN,R_FID=Data_FID
          FREE_LUN,hFile
+         
          
          ;Delete The Binary  File
          IF FILE_TEST(OutFileName) THEN BEGIN
@@ -166,10 +175,16 @@ PRO  CMORPTH_UNZIP_CONVERT_CLIP
        out_dims    = [-1,xMin,xMax,yMin,yMax]
        pos = INDGEN(1)
        ENVI_DOIT,'ENVI_SUBSET_VIA_ROI_DOIT',background=0,fid=Data_FID,dims=out_dims,out_name=OutFilename,$
-         ns = nx, nl = ny,pos=pos,roi_ids = roi_shp, R_FID = QTP_FID
+         ns = nx, nl = ny,pos=pos,roi_ids = roi_shp
 
        ENVI_FILE_MNG, ID=Data_FID,/REMOVE,/DELETE
-       ENVI_FILE_MNG, ID=QTP_FID,/REMOVE
+       
+       ;remove fids
+       fids = ENVI_GET_FILE_IDS()
+       IF (fids[0] EQ -1) THEN RETURN
+       ENVI_FILE_MNG, id = fids[0], /REMOVE
+       
+       
      ENDFOR
    ENDFOR
 END
