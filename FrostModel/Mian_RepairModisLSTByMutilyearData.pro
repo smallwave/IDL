@@ -51,8 +51,8 @@ PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
       strSeachDateTime[3,year] =  "MYD11A1_" + STRING(searchYears[year],FORMAT = '(i4.4)')+strDay+ "*Night*.tif"
     ENDFOR
     ; search file
-    searchFiles = []
     FOR nType = 0, 3 DO BEGIN
+      searchFiles = []
       FOR year = 0, N_ELEMENTS(searchYears) -1 DO BEGIN
         searchMatch         =  strSeachDateTime[nType,year]
         searchSingleFiles   =  FILE_SEARCH(DataPath, searchMatch,count=numfiles)
@@ -61,7 +61,7 @@ PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
       ENDFOR
       numfiles      =  N_ELEMENTS(searchFiles)
       IF(nType EQ 0) THEN BEGIN
-         strInfo = "MOD11A1_Day " + strDay
+         strInfo = "MOD11A1_Day " + strDay 
       ENDIF ELSE IF (nType EQ 1)  THEN  BEGIN
          strInfo = "MOD11A1_Night "+ strDay
       ENDIF ELSE IF (nType EQ 2)  THEN  BEGIN
