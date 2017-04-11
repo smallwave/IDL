@@ -8,10 +8,10 @@
 ;
 ; Some Path
 ; Write by :
-;    2017-4-10 15:02:53
+;    2017-4-11 14:02:53
 ;;MODIFICATION HISTORY:
 ;;   Modified and updated  :
-;    2017-4-11 15:02:53
+;    2017-4-11 17:06:53   search problem
 ;
 
 PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
@@ -24,7 +24,7 @@ PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
   ; Define the coefficient array :
   DataPath           =  "D:\Test\"
   OutFilePath        =  "D:\Out\"
-  numberDays         =  2
+  numberDays         =  3
 
 
   ;Check file path
@@ -42,16 +42,19 @@ PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
     strDay           = STRING(Day,FORMAT = '(i3.3)')
     ;step1  search file and get file data
     strSeachDateTime    =  STRARR(4)
-    strSeachDateTime[0] =  "MOD11A1*" + strDay+ "*Day*.tif"
-    strSeachDateTime[1] =  "MOD11A1*" + strDay+ "*Night*.tif"
-    strSeachDateTime[2] =  "MYD11A1*" + strDay+ "*Day*.tif"
-    strSeachDateTime[3] =  "MYD11A1*" + strDay+ "*Night*.tif"
-
+    strSeachDateTime[0] =  "MOD11A1_20*" + strDay+ "*Day*.tif"
+    strSeachDateTime[1] =  "MOD11A1_20*" + strDay+ "*Night*.tif"
+    strSeachDateTime[2] =  "MYD11A1_20*" + strDay+ "*Day*.tif"
+    strSeachDateTime[3] =  "MYD11A1_20*" + strDay+ "*Night*.tif"
     FOR nType = 0, 3 DO BEGIN
       strSeachDateTimeC =  strSeachDateTime[nType]
       searchFiles       =  FILE_SEARCH(DataPath, strSeachDateTimeC,count=numfiles)
+      IF(numfiles EQ 0) THEN BEGIN
+        STR_INFO = strSeachDateTimeC  + ' : have 0 files!'
+        PRINTF,PRO_LUN,STR_INFO
+        CONTINUE
+      ENDIF  
       strFileNames      =  STRARR(numfiles)
-
       IF(numfiles NE 8) THEN BEGIN
         STR_INFO = strSeachDateTimeC  + ' : have not number 8 files!'
         PRINTF,PRO_LUN,STR_INFO
