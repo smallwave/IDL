@@ -61,13 +61,13 @@ PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
       ENDFOR
       numfiles      =  N_ELEMENTS(searchFiles)
       IF(nType EQ 0) THEN BEGIN
-         strInfo = "MOD11A1_Day " + strDay 
+         strInfo = "MOD11A1_Day " + strDay + string(numfiles) + ' files!'
       ENDIF ELSE IF (nType EQ 1)  THEN  BEGIN
-         strInfo = "MOD11A1_Night "+ strDay
+         strInfo = "MOD11A1_Night "+ strDay + string(numfiles) + ' files!'
       ENDIF ELSE IF (nType EQ 2)  THEN  BEGIN
-         strInfo = "MYD11A1_Day "+ strDay
+         strInfo = "MYD11A1_Day "+ strDay + string(numfiles) + ' files!'
       ENDIF  ELSE  BEGIN
-         strInfo = "MYD11A1_Night "+ strDay
+         strInfo = "MYD11A1_Night "+ strDay + string(numfiles) + ' files!'
       ENDELSE
       ; process data
       IF(numfiles EQ 0) THEN BEGIN
