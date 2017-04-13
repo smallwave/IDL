@@ -3,7 +3,7 @@
 ; Email: wavelet2008@163.com
 ;
 ; NAME:
-;    D:\workspace\Tech\Code\IDL\DataPreprocessing\Mian_RepairModisLSTByMutilyearData.pro
+;    D:\workspace\Tech\Code\IDL\DataPreprocessing\Mian_MeanModisLSTByMutilyearData.pro
 ; PARAMETERS:
 ;
 ; Some Path
@@ -12,9 +12,10 @@
 ;;MODIFICATION HISTORY:
 ;;   Modified and updated  :
 ;    2017-4-11 17:06:53   search problem
+;    2017-4-13 10:25:16   only output mean data
 ;
 
-PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
+PRO MIAN_MEANMODISLSTBYMUTILYEARDATA
 
   COMPILE_OPT idl2
   ;Resore Envi
@@ -42,9 +43,10 @@ PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
     startFileTime    = SYSTIME(1)
     strDay           = STRING(Day,FORMAT = '(i3.3)')
     ;step1  search file and get file data
-    strSeachDateTime    =  STRARR(4,8)
+    nYeay = N_ELEMENTS(searchYears)
+    strSeachDateTime    =  STRARR(4,nYeay)
     ; get string year match
-    FOR year = 0, N_ELEMENTS(searchYears) -1 DO BEGIN
+    FOR year = 0,  nYeay-1 DO BEGIN
       strSeachDateTime[0,year] =  "MOD11A1_" + STRING(searchYears[year],FORMAT = '(i4.4)')+strDay+ "*Day*.tif"
       strSeachDateTime[1,year] =  "MOD11A1_" + STRING(searchYears[year],FORMAT = '(i4.4)')+strDay+ "*Night*.tif"
       strSeachDateTime[2,year] =  "MYD11A1_" + STRING(searchYears[year],FORMAT = '(i4.4)')+strDay+ "*Day*.tif"
@@ -53,21 +55,25 @@ PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
     ; search file
     FOR nType = 0, 3 DO BEGIN
       searchFiles = []
-      FOR year = 0, N_ELEMENTS(searchYears) -1 DO BEGIN
+      FOR year = 0, nYeay -1 DO BEGIN
         searchMatch         =  strSeachDateTime[nType,year]
         searchSingleFiles   =  FILE_SEARCH(DataPath, searchMatch,count=numfiles)
-        IF(numfiles EQ 0) THEN RETURN
+        IF(numfiles EQ 0) THEN CONTINUE
         searchFiles = [searchFiles,searchSingleFiles]
       ENDFOR
       numfiles      =  N_ELEMENTS(searchFiles)
       IF(nType EQ 0) THEN BEGIN
-         strInfo = "MOD11A1_Day " + strDay + string(numfiles) + ' files!'
+        strInfo = "MOD11A1_Day " + strDay + STRING(numfiles) + ' files!'
+        strOutFileName = "MOD11A1_Day_D" + strDay + ".tif"
       ENDIF ELSE IF (nType EQ 1)  THEN  BEGIN
-         strInfo = "MOD11A1_Night "+ strDay + string(numfiles) + ' files!'
+        strInfo = "MOD11A1_Night "+ strDay + STRING(numfiles) + ' files!'
+        strOutFileName = "MOD11A1_Night_D" + strDay + ".tif"
       ENDIF ELSE IF (nType EQ 2)  THEN  BEGIN
-         strInfo = "MYD11A1_Day "+ strDay + string(numfiles) + ' files!'
+        strInfo = "MYD11A1_Day "+ strDay + STRING(numfiles) + ' files!'
+        strOutFileName = "MYD11A1_Day_D" + strDay + ".tif"
       ENDIF  ELSE  BEGIN
-         strInfo = "MYD11A1_Night "+ strDay + string(numfiles) + ' files!'
+        strInfo = "MYD11A1_Night "+ strDay + STRING(numfiles) + ' files!'
+        strOutFileName = "MYD11A1_Night_D" + strDay + ".tif"
       ENDELSE
       ; process data
       IF(numfiles EQ 0) THEN BEGIN
@@ -105,24 +111,19 @@ PRO MIAN_REPAIRMODISLSTBYMUTILYEARDATA
 
       ;step3  calculate mean value using multi-year
       numData[WHERE(numData EQ 0.0)] = 1.0
-      meanData            = sumData/numData
+      meanData            = uint(sumData/numData)
 
-      FOR n = 0, numfiles-1  DO BEGIN
-        ;step4  replace file
-        outData  =  tempData[*,*,n]
-        outData[WHERE(outData EQ 0.0)] = meanData[WHERE(outData EQ 0.0)]
+      ;step4  output file
+      OutFile  =  OutFilePath +  strOutFileName
+      OPENW, HData, OutFile, /GET_LUN
+      WRITEU, HData, meanData
+      FREE_LUN, HData
 
-        ;step5  output file
-        OutFile  =  OutFilePath +  strFileNames[n]
-        OPENW, HData, OutFile, /GET_LUN
-        WRITEU, HData,outData
-        FREE_LUN, HData
+      ; Edit the envi header file
+      ENVI_SETUP_HEAD, FNAME=OutFile,NS=ns,NL=nl,NB=1,INTERLEAVE=interleave,$
+        DATA_TYPE=DATA_TYPE,OFFSET=offset,MAP_INFO=map_info,/WRITE,$
+        /OPEN,R_FID=Data_FID
 
-        ; Edit the envi header file
-        ENVI_SETUP_HEAD, FNAME=OutFile,NS=ns,NL=nl,NB=1,INTERLEAVE=interleave,$
-          DATA_TYPE=DATA_TYPE,OFFSET=offset,MAP_INFO=map_info,/WRITE,$
-          /OPEN,R_FID=Data_FID
-      ENDFOR
       ; remove all the FIDs in the file lists
       FIDS = ENVI_GET_FILE_IDS()
       FOR i = 0, N_ELEMENTS(FIDS) - 1 DO BEGIN
